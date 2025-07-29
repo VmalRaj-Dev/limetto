@@ -35,7 +35,8 @@ export async function POST() {
   }
 
   // Dynamically create the return URL
-  const origin = headers().get('origin') || 'http://localhost:3000';
+  const headersList = await headers();
+  const origin = headersList.get('origin') || 'http://localhost:3000';
   const returnUrl = `${origin}/dashboard`;
 
   try {
@@ -66,7 +67,11 @@ export async function POST() {
     // Success: return the session data from Dodo Payments
     return NextResponse.json(data);
   } catch (e: unknown) {
-    console.error('Internal Server Error:', e.message);
+    if (e instanceof Error) {
+      console.error('Internal Server Error:', e.message);
+    } else {
+      console.error('Internal Server Error:', e);
+    }
     return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
   }
 }

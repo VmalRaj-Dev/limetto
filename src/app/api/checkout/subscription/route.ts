@@ -12,7 +12,9 @@ const DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID =
 export const POST = async (request: Request) => {
   try {
     if (!DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID) {
-      throw new Error("Missing DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID env var");
+      throw new Error(
+        "Missing DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID env var"
+      );
     }
 
     const body = await request.json();
@@ -50,7 +52,8 @@ export const POST = async (request: Request) => {
       .eq("id", supabaseUserId)
       .single();
 
-    if (profileError && profileError.code !== "PGRST116") { // PGRST116 means "no rows found"
+    if (profileError && profileError.code !== "PGRST116") {
+      // PGRST116 means "no rows found"
       throw profileError;
     }
 
@@ -63,15 +66,23 @@ export const POST = async (request: Request) => {
         name,
       });
       dodopaymentsCustomerId = customerRes.customer_id;
-      console.log("New dodopaymentsCustomerId created:", dodopaymentsCustomerId);
+      console.log(
+        "New dodopaymentsCustomerId created:",
+        dodopaymentsCustomerId
+      );
       await supabase
         .from("profiles")
         .update({ dodopayments_customer_id: dodopaymentsCustomerId })
         .eq("id", supabaseUserId);
     }
 
-    console.log("dodopaymentsCustomerId before subscription creation:", dodopaymentsCustomerId);
-
+    console.log(
+      "dodopaymentsCustomerId before subscription creation:",
+      dodopaymentsCustomerId
+    );
+    if (!dodopaymentsCustomerId) {
+      throw new Error("Failed to resolve dodopaymentsCustomerId");
+    }
     const subscriptionResponse = await dodopayments.subscriptions.create({
       billing: {
         ...billing,
@@ -93,7 +104,10 @@ export const POST = async (request: Request) => {
       },
     });
 
-    console.log("Subscription creation response (metadata part):", subscriptionResponse.metadata);
+    console.log(
+      "Subscription creation response (metadata part):",
+      subscriptionResponse.metadata
+    );
 
     return NextResponse.json(subscriptionResponse);
   } catch (error) {

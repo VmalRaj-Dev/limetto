@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     })
 
     // Hydrate user (on first load only after cookie is available)
-    supabase.auth.getUser().then(({ data, error }) => {
+    supabase.auth.getUser().then(({ data }) => {
       if (data?.user) {
         setUser(data.user)
       } else {

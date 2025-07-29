@@ -101,7 +101,7 @@ export async function POST(request: Request) {
         const supabaseUserId = metadata.supabase_user_id;
         // Assuming dodopayments provides a customer_id on the payment object
         // Or if you set it in metadata during payment creation:
-        const dodopaymentsCustomerId = payment.customer_id || metadata.dodopayments_customer_id; 
+        const dodopaymentsCustomerId = payment.customer || metadata.dodopayments_customer_id; 
         const dodopaymentsLastPaymentId = paymentId; // The ID of the successful payment
 
         if (supabaseUserId) {

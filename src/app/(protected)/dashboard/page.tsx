@@ -62,8 +62,14 @@ export default function Account() {
 
       // Redirect user to Dodo's hosted portal
       window.location.href = data.session_url
-    } catch (err: unknown) {
+    } catch (err) {
+      if(err instanceof Error) {
+        console.error('Error redirecting to Dodo Payments:', err.message)
       alert(err.message || 'Failed to redirect')
+      }
+      else {
+        alert('Failed to redirect')
+      }
     } finally {
       setLoading(false)
     }

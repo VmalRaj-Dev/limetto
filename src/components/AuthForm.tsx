@@ -176,6 +176,18 @@ export default function SignUp() {
     }
   };
 
+  if(error){
+    return(
+      <div>Error...</div>
+    )
+  }
+
+  if(loading){
+    return(
+      <div>Loading...</div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
       <div className="w-full max-w-md animate-fade-in">
@@ -313,7 +325,7 @@ export default function SignUp() {
                     {categories.map((option) => (
                       <SelectItem
                         key={option.id}
-                        value={option.id}
+                        value={option.id.toString()}
                         className="cursor-pointer"
                       >
                         {option.category}
