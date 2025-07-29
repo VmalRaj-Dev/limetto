@@ -36,7 +36,7 @@ export async function POST() {
 
   // Dynamically create the return URL
   const headersList = await headers();
-  const origin = headersList.get('origin') || 'http://localhost:3000';
+  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_BASE_URL;
   const returnUrl = `${origin}/dashboard`;
 
   try {
