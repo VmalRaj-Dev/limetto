@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createServer } from '@/utils/supabase/server'; // Assuming your helper is correct
 import { headers } from 'next/headers';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const supabase = await createServer(); // The official helper is synchronous
 
   const {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     // Success: return the session data from Dodo Payments
     return NextResponse.json(data);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Internal Server Error:', e.message);
     return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
   }
