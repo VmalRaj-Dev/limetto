@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Design Tokens (HSL format) */
+  --color-background: 0 0% 99%;
+  --color-foreground: 224 71% 4%;
+  --color-card: 0 0% 100%;
+  --color-card-foreground: 224 71% 4%;
+  --color-popover: 0 0% 100%;
+  --color-popover-foreground: 224 71% 4%;
+  --color-primary: 84 81% 44%;
+  --color-primary-foreground: 224 71% 4%;
+  --color-secondary: 84 51% 95%;
+  --color-secondary-foreground: 224 71% 4%;
+  --color-destructive: 0 84.2% 60.2%;
+  --color-destructive-foreground: 0, 100%, 50%;
+  --color-muted: 84 51% 95%;
+  --color-muted-foreground: 224 27% 50%;
+  --color-accent: 84 81% 44%;
+  --color-accent-foreground: 224 71% 4%;
+  --color-border: 84 30% 90%;
+  --color-input: 84 30% 90%;
+  --color-ring: 84 81% 44%;
+
+  --color-lime-primary: 84 81% 44%;
+  --color-lime-secondary: 84 51% 95%;
+  --color-lime-accent: 84 100% 35%;
+
+  /* Sidebar Colors */
+  --color-sidebar-background: 0 0% 98%;
+  --color-sidebar-foreground: 240 5.3% 26.1%;
+  --color-sidebar-primary: 240 5.9% 10%;
+  --color-sidebar-primary-foreground: 0 0% 98%;
+  --color-sidebar-accent: 240 4.8% 95.9%;
+  --color-sidebar-accent-foreground: 240 5.9% 10%;
+  --color-sidebar-border: 220 13% 91%;
+  --color-sidebar-ring: 217.2 91.2% 59.8%;
+
+  /* Gradients */
+  --gradient-lime: linear-gradient(135deg, hsl(84 81% 44%), hsl(84 100% 35%));
+  --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(84 51% 98%));
+
+  /* Radius */
+  --radius: 0.5rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Animations */
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+
+  @keyframes fade-in {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-gentle {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.9; }
+  }
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-pulse-gentle: pulse-gentle 2s ease-in-out infinite;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --color-background: 222.2 84% 4.9%;
+  --color-foreground: 210 40% 98%;
+  --color-card: 222.2 84% 4.9%;
+  --color-card-foreground: 210 40% 98%;
+  --color-popover: 222.2 84% 4.9%;
+  --color-popover-foreground: 210 40% 98%;
+  --color-primary: 210 40% 98%;
+  --color-primary-foreground: 222.2 47.4% 11.2%;
+  --color-secondary: 217.2 32.6% 17.5%;
+  --color-secondary-foreground: 210 40% 98%;
+  --color-muted: 217.2 32.6% 17.5%;
+  --color-muted-foreground: 215 20.2% 65.1%;
+  --color-accent: 217.2 32.6% 17.5%;
+  --color-accent-foreground: 210 40% 98%;
+  --color-destructive: 0 62.8% 30.6%;
+  --color-destructive-foreground: 210 40% 98%;
+  --color-border: 217.2 32.6% 17.5%;
+  --color-input: 217.2 32.6% 17.5%;
+  --color-ring: 212.7 26.8% 83.9%;
+
+  --color-sidebar-background: 240 5.9% 10%;
+  --color-sidebar-foreground: 240 4.8% 95.9%;
+  --color-sidebar-primary: 224.3 76.3% 48%;
+  --color-sidebar-primary-foreground: 0 0% 100%;
+  --color-sidebar-accent: 240 3.7% 15.9%;
+  --color-sidebar-accent-foreground: 240 4.8% 95.9%;
+  --color-sidebar-border: 240 3.7% 15.9%;
+  --color-sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* Base styles */
+@layer base {
+  * {
+    border-color: hsl(var(--color-border));
+    @apply outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  /* Backgrounds */
+  .bg-background { background-color: hsl(var(--color-background)); }
+  .bg-card { background-color: hsl(var(--color-card)); }
+  .bg-popover { background-color: hsl(var(--color-popover)); }
+  .bg-primary { background-color: hsl(var(--color-primary)); }
+  .bg-secondary { background-color: hsl(var(--color-secondary)); }
+  .bg-muted { background-color: hsl(var(--color-muted)); }
+  .bg-accent { background-color: hsl(var(--color-accent)); }
+  .bg-destructive { background-color: hsl(var(--color-destructive)); }
+  .bg-input { background-color: hsl(var(--color-input)); }
+  .bg-sidebar { background-color: hsl(var(--color-sidebar-background)); }
+  .bg-sidebar-primary { background-color: hsl(var(--color-sidebar-primary)); }
+  .bg-sidebar-accent { background-color: hsl(var(--color-sidebar-accent)); }
+
+  /* Text colors */
+  .text-foreground { color: hsl(var(--color-foreground)); }
+  .text-card-foreground { color: hsl(var(--color-card-foreground)); }
+  .text-popover-foreground { color: hsl(var(--color-popover-foreground)); }
+  .text-primary-foreground { color: hsl(var(--color-primary-foreground)); }
+  .text-secondary-foreground { color: hsl(var(--color-secondary-foreground)); }
+  .text-muted-foreground { color: hsl(var(--color-muted-foreground)); }
+  .text-accent-foreground { color: hsl(var(--color-accent-foreground)); }
+  .text-destructive-foreground { color: hsl(var(--color-destructive-foreground)); }
+  .text-lime-primary { color: hsl(var(--color-lime-primary)); }
+  .text-lime-secondary { color: hsl(var(--color-lime-secondary)); }
+  .text-lime-accent { color: hsl(var(--color-lime-accent)); }
+  .text-sidebar-foreground { color: hsl(var(--color-sidebar-foreground)); }
+  .text-sidebar-primary { color: hsl(var(--color-sidebar-primary)); }
+  .text-sidebar-primary-foreground { color: hsl(var(--color-sidebar-primary-foreground)); }
+  .text-sidebar-accent { color: hsl(var(--color-sidebar-accent)); }
+  .text-sidebar-accent-foreground { color: hsl(var(--color-sidebar-accent-foreground)); }
+
+  /* Border */
+  .border-border { border-color: hsl(var(--color-border)); }
+  .border-input { border-color: hsl(var(--color-input)); }
+  .border-primary { border-color: hsl(var(--color-primary)); }
+  .border-secondary { border-color: hsl(var(--color-secondary)); }
+  .border-muted { border-color: hsl(var(--color-muted)); }
+  .border-accent { border-color: hsl(var(--color-accent)); }
+  .border-sidebar { border-color: hsl(var(--color-sidebar-border)); }
+
+  /* Ring */
+  .ring-ring { --tw-ring-color: hsl(var(--color-ring)); }
+  .ring-primary { --tw-ring-color: hsl(var(--color-primary)); }
+  .ring-secondary { --tw-ring-color: hsl(var(--color-secondary)); }
+  .ring-destructive { --tw-ring-color: hsl(var(--color-destructive)); }
+  .ring-sidebar { --tw-ring-color: hsl(var(--color-sidebar-ring)); }
+
+  /* Gradients */
+  .bg-gradient-lime { background-image: var(--gradient-lime); }
+  .bg-gradient-subtle { background-image: var(--gradient-subtle); }
+}
