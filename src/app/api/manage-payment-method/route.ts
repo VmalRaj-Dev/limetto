@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServer } from '@/utils/supabase/server'; // Assuming your helper is correct
-import { headers } from 'next/headers';
+// import { headers } from 'next/headers';
 
 export async function POST() {
   const supabase = await createServer(); // The official helper is synchronous
@@ -35,37 +35,51 @@ export async function POST() {
   }
 
   // Dynamically create the return URL
-  const headersList = await headers();
-  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_BASE_URL;
-  const returnUrl = `${origin}/dashboard`;
+  // const headersList = await headers();
+  // const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_BASE_URL;
+  // const returnUrl = `${origin}/dashboard`;
+
+  // Use the correct test or live endpoint
+  const baseUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://live.dodopayments.com'
+      : 'https://test.dodopayments.com';
+
+  const customerId = profile.dodopayments_customer_id;
 
   try {
-    const dodoRes = await fetch('https://api.dodopayments.com/v1/portal/session', {
-      method: 'POST',
-      headers: {
-        // Ensure DODO_API_KEY is set in your .env.local
-        Authorization: `Bearer ${process.env.DODO_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        // FIX: Use the correct property name from the profile object
-        customer: profile.dodopayments_customer_id,
-        // FIX: Use the dynamic return URL
-        return_url: returnUrl,
-      }),
-    });
+    const dodoRes = await fetch(
+      `${baseUrl}/customers/${customerId}/customer-portal/session`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.DODO_API_KEY_TEST}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    const data = await dodoRes.json();
+    // Check if there is a response body before parsing
+    let data = null;
+    const text = await dodoRes.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (err) {
+      console.error('Failed to parse Dodo Payments API response as JSON:', text, err);
+      data = {};
+    }
+
+    console.log('Dodo Payments API response:', data);
+
     if (!dodoRes.ok) {
-      console.error('Dodo Payments API Error:', data);
       return NextResponse.json(
         { error: 'Failed to create portal session.', details: data },
         { status: dodoRes.status }
       );
     }
 
-    // Success: return the session data from Dodo Payments
-    return NextResponse.json(data);
+    // The portal link is in data.link
+    return NextResponse.json({ session_url: data.link });
   } catch (e: unknown) {
     if (e instanceof Error) {
       console.error('Internal Server Error:', e.message);

@@ -2,7 +2,7 @@ import { dodopayments } from "@/lib/dodopayments";
 import { NextResponse } from "next/server";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
-import { createClient } from "@/utils/supabase/client";
+import { createServerClient } from '@/utils/supabase/serverClient';
 
 countries.registerLocale(enLocale);
 
@@ -42,9 +42,12 @@ export const POST = async (request: Request) => {
       );
     }
 
-    const supabase = createClient();
+    const supabase = createServerClient();
 
     let dodopaymentsCustomerId: string | undefined;
+
+    console.log('supabaseUserId', supabaseUserId);
+    
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -52,10 +55,22 @@ export const POST = async (request: Request) => {
       .eq("id", supabaseUserId)
       .single();
 
-    if (profileError && profileError.code !== "PGRST116") {
-      // PGRST116 means "no rows found"
-      throw profileError;
+    if (profileError) {
+      console.error("Payment Webhook profile fetch failed:", profileError.message);
+      return NextResponse.json(
+        { error: "Failed to fetch profile for subscription" },
+        { status: 400 }
+      );
     }
+    if (!profile) {
+      console.error("Payment Webhook: No profile found for user", supabaseUserId);
+      return NextResponse.json(
+        { error: "No profile found for user" },
+        { status: 404 }
+      );
+    }
+
+    // The "no rows found" case is already handled above, so we don't need to check profileError.code here.
 
     if (profile?.dodopayments_customer_id) {
       dodopaymentsCustomerId = profile.dodopayments_customer_id;
@@ -70,10 +85,22 @@ export const POST = async (request: Request) => {
         "New dodopaymentsCustomerId created:",
         dodopaymentsCustomerId
       );
-      await supabase
+      const { error: updateError } = await supabase
         .from("profiles")
         .update({ dodopayments_customer_id: dodopaymentsCustomerId })
         .eq("id", supabaseUserId);
+
+      if (updateError) {
+        console.error(
+          "Failed to update dodopayments_customer_id:",
+          updateError
+        );
+      } else {
+        console.log(
+          "Successfully updated dodopayments_customer_id for user:",
+          supabaseUserId
+        );
+      }
     }
 
     console.log(

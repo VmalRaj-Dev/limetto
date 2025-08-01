@@ -5,11 +5,11 @@ export function createClient() {
 
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  console.log("Supabase Configuration Debug:");
-
-  console.log("URL:", supabaseUrl);
-
-  console.log("Anon Key Length:", supabaseAnonKey.length);
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Supabase URL and Anon Key must be set in environment variables."
+    );
+  }
   // Create a supabase client on the browser with project's credentials
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
