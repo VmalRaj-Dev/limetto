@@ -50,19 +50,6 @@ const signUpSchema = z.object({
 // Infer the type from the schema for type safety
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-// const options = [
-//   { value: "UI/UX Designers", label: "UI/UX Designers" },
-//   {
-//     value: "Shopify & E-commerce Developers",
-//     label: "Shopify & E-commerce Developers",
-//   },
-//   { value: "SaaS App Developers", label: "SaaS App Developers" },
-//   {
-//     value: "WordPress & Webflow Experts",
-//     label: "WordPress & Webflow Experts",
-//   },
-// ];
-
 export default function SignUp() {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -125,8 +112,8 @@ export default function SignUp() {
         email: data.email,
         password: data.password,
         options: {
-           // emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/start-trial`,
-           emailRedirectTo: "http://localhost:3000/start-trial",
+           emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/start-trial`,
+          //  emailRedirectTo: "http://localhost:3000/start-trial",
           data: {
             name: data.name,
             chosen_category_id: data.chosen_category_id,
@@ -142,26 +129,6 @@ export default function SignUp() {
       if (error) {
         throw new Error(error.message || "Failed to create account.");
       }
-      //   const response = await fetch('/api/create-stripe-customer', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({
-      //       userId: user.id,
-      //       name: data.fullName,
-      //       email: data.email,
-      //       categoryId: data.categoryId,
-      //     }),
-      //   });
-
-      //   const { customer } = await response.json();
-      //   if (!customer) throw new Error('Failed to create Stripe customer.');
-
-      //   // Redirect to the page where they enter card details to start the trial
-      //   router.push('/start-trial');
-
-      // } catch (error) {
-      //   console.error('Error during sign up:', error.message);
-      // }
       setStatus("success");
       setMessage("Account created successfully! Welcome to Limetto.");
       reset(); // Reset form fields on success

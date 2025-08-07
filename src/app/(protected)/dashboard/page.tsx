@@ -368,7 +368,7 @@ export default function Account() {
           <Button
             onClick={handleSignOut} // Corrected onClick handler
             variant="outline"
-            className="border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white font-medium py-2.5 rounded-lg text-base shadow-sm transition-all duration-300 ease-in-out"
+            className="border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white font-medium py-2.5 rounded-lg text-base shadow-sm transition-all duration-300 ease-in-out cursor-pointer"
           >
             <LogOut className="h-4 w-4 mr-2" />
             {/* Sign Out */}

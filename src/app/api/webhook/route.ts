@@ -1,146 +1,226 @@
 import { Webhook } from "standardwebhooks";
 import { headers } from "next/headers";
 import { dodopayments } from "@/lib/dodopayments";
-import { createClient } from "@/utils/supabase/client";
+import { createServerClient } from "@/utils/supabase/serverClient";
+import { z } from "zod";
 
 const webhook = new Webhook(process.env.DODO_PAYMENTS_WEBHOOK_KEY!);
 
+const SubscriptionMetadataSchema = z.object({
+  supabase_user_id: z.string().uuid(),
+  supabase_category_id: z.string().uuid(),
+  dodopayments_customer_id: z.string().optional(),
+});
+
+// const PaymentMetadataSchema = z.object({
+//   supabase_user_id: z.string().uuid(),
+// });
+
 export async function POST(request: Request) {
-  const headersList = await headers();
+  const headersList = await headers(); // no need for `await` here
+  const rawBody = await request.text();
+
+  const webhookHeaders = {
+    "webhook-id": headersList.get("webhook-id") || "",
+    "webhook-signature": headersList.get("webhook-signature") || "",
+    "webhook-timestamp": headersList.get("webhook-timestamp") || "",
+  };
 
   try {
-    const rawBody = await request.text();
-    const webhookHeaders = {
-      "webhook-id": headersList.get("webhook-id") || "",
-      "webhook-signature": headersList.get("webhook-signature") || "",
-      "webhook-timestamp": headersList.get("webhook-timestamp") || "",
-    };
-
     await webhook.verify(rawBody, webhookHeaders);
-    const payload = JSON.parse(rawBody);
-    const supabase = createClient();
+    const { type, data } = JSON.parse(rawBody);
+    const supabase = createServerClient();
 
-    console.log('checking webhook for payload type', payload.data)
-
-    if (payload.data.payload_type === "Subscription") {
-      const subscriptionId = payload.data.subscription_id;
-
-      const subscription = await dodopayments.subscriptions.retrieve(
-        subscriptionId
-      );
-      const {
-        metadata,
-        status,
-        next_billing_date: current_period_end,
-      } = subscription;
-
-      const supabaseUserId = metadata?.supabase_user_id;
-      const supabaseCategoryId = metadata?.supabase_category_id;
-      // Add dodopayments_customer_id from subscription metadata if available
-      const dodopaymentsCustomerId = metadata?.dodopayments_customer_id; // Assuming you set this in metadata during subscription creation
-      console.log('checking customer Id in webhook', dodopaymentsCustomerId)
-
-      if (!supabaseUserId) {
-        console.error("Missing supabase_user_id in metadata");
-        return Response.json({ error: "Invalid metadata" }, { status: 400 });
-      }
-
-      const { data: existingProfile, error } = await supabase
-        .from("profiles")
-        .select("subscription_status, dodopayments_subscription_id, dodopayments_customer_id") // Select dodopayments_customer_id here
-        .eq("id", supabaseUserId)
-        .single();
-
-      if (error) {
-        console.error("Failed to fetch profile for webhook:", error.message);
-        return Response.json({ error: "User not found" }, { status: 404 });
-      }
-
-      // Idempotency guard
-      const alreadyHandled =
-        existingProfile?.dodopayments_subscription_id === subscriptionId &&
-        existingProfile?.subscription_status === status;
-
-      if (alreadyHandled) {
-        return Response.json({ message: "Already processed" }, { status: 200 });
-      }
-
-      switch (payload.type) {
-        case "subscription.active":
-        case "subscription.renewed":
-          await supabase
-            .from("profiles")
-            .update({
-              subscription_status: status,
-              trial_ends_at: new Date(current_period_end).toISOString(),
-              chosen_category_id: supabaseCategoryId,
-              dodopayments_subscription_id: subscriptionId,
-              dodopayments_customer_id: dodopaymentsCustomerId, // Add this line
-            })
-            .eq("id", supabaseUserId);
-          break;
-
-        case "subscription.cancelled":
-        case "subscription.on_hold":
-        case "subscription.failed":
-          await supabase
-            .from("profiles")
-            .update({ subscription_status: status })
-            .eq("id", supabaseUserId);
-          break;
-      }
+    if (data.payload_type === "Subscription") {
+      await handleSubscriptionEvent(type, data, supabase);
+    } else if (data.payload_type === "Payment") {
+      await handlePaymentEvent(type, data, supabase);
     }
 
-    if (payload.data.payload_type === "Payment") {
-      const paymentId = payload.data.payment_id;
-
-      if (payload.type === "payment.succeeded") {
-        const payment = await dodopayments.payments.retrieve(paymentId);
-        console.log('payment', payment)
-        const metadata = payment.metadata || {};
-        const supabaseUserId = metadata.supabase_user_id;
-        // Assuming dodopayments provides a customer_id on the payment object
-        // Or if you set it in metadata during payment creation:
-        const dodopaymentsCustomerId = payment.customer || metadata.dodopayments_customer_id; 
-        const dodopaymentsLastPaymentId = paymentId; // The ID of the successful payment
-
-        if (supabaseUserId) {
-          const { data: existingProfile, error } = await supabase
-            .from("profiles")
-            .select("last_payment_at, payment_status, dodopayments_customer_id, dodopayments_last_payment_id") // Select the new columns
-            .eq("id", supabaseUserId)
-            .single();
-
-          if (error) {
-            console.error("Payment Webhook profile fetch failed:", error.message);
-            return Response.json({ error: "User not found" }, { status: 404 });
-          }
-
-          // Avoid redundant update
-          const lastPaymentAt = existingProfile?.last_payment_at;
-          const alreadyUpdated =
-            existingProfile?.payment_status === "succeeded" &&
-            lastPaymentAt === new Date(payment.created_at).toISOString() &&
-            existingProfile?.dodopayments_last_payment_id === dodopaymentsLastPaymentId; // Add idempotency for payment ID
-
-          if (!alreadyUpdated) {
-            await supabase
-              .from("profiles")
-              .update({
-                last_payment_at: new Date(payment.created_at).toISOString(),
-                payment_status: "succeeded",
-                dodopayments_customer_id: dodopaymentsCustomerId, // Add this line
-                dodopayments_last_payment_id: dodopaymentsLastPaymentId, // Add this line
-              })
-              .eq("id", supabaseUserId);
-          }
-        }
-      }
-    }
-
-    return Response.json({ message: "Webhook processed successfully" }, { status: 200 });
+    return Response.json(
+      { message: "Webhook processed successfully" },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("Webhook verification failed", error);
+    console.error("Webhook processing error:", error);
     return Response.json({ error: "Webhook failed" }, { status: 400 });
+  }
+}
+
+async function handleSubscriptionEvent(
+  type: string,
+  data: { subscription_id: string; payload_type: string },
+  supabase: ReturnType<typeof createServerClient>
+) {
+  const subscription = await dodopayments.subscriptions.retrieve(
+    data.subscription_id
+  );
+
+  const metadata = SubscriptionMetadataSchema.safeParse(subscription.metadata);
+
+  if (!metadata.success) {
+    throw new Error("Invalid or missing subscription metadata");
+  }
+
+  const {
+    // metadata,
+    status,
+    next_billing_date,
+    created_at,
+    trial_period_days = 0,
+  } = subscription;
+
+  const supabaseUserId = metadata.data.supabase_user_id;
+  const supabaseCategoryId = metadata.data.supabase_category_id;
+  const dodopaymentsCustomerId = metadata.data.dodopayments_customer_id;
+
+  if (!supabaseUserId) {
+    throw new Error("Missing supabase_user_id in metadata");
+  }
+
+  const nextBillingDate = new Date(next_billing_date);
+  const createdDate = new Date(created_at);
+  const isTrialing = trial_period_days > 0 && nextBillingDate > createdDate;
+
+  switch (type) {
+    case "subscription.active":
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          subscription_status: isTrialing ? "trialing" : "active",
+          is_trialing: isTrialing,
+          trial_ends_at: isTrialing ? nextBillingDate.toISOString() : null,
+          has_ever_trialed: true,
+          chosen_category_id: supabaseCategoryId,
+          dodopayments_subscription_id: data.subscription_id,
+          dodopayments_customer_id: dodopaymentsCustomerId,
+          subscribed_at: new Date().toISOString(),
+        })
+        .eq("id", supabaseUserId);
+      if (updateError) {
+        console.error("Failed to update profile after payment:", updateError);
+        throw new Error("Failed to update profile after payment");
+      }
+      break;
+
+    case "subscription.renewed":
+      await supabase
+        .from("profiles")
+        .update({
+          is_trialing: false,
+          subscription_status: status,
+          trial_ends_at: null,
+          chosen_category_id: supabaseCategoryId,
+          subscribed_at: new Date().toISOString(),
+          dodopayments_subscription_id: data.subscription_id,
+          dodopayments_customer_id: dodopaymentsCustomerId,
+        })
+        .eq("id", supabaseUserId);
+      break;
+
+    case "subscription.on_hold":
+      await supabase
+        .from("profiles")
+        .update({ subscription_status: "on_hold" })
+        .eq("id", supabaseUserId);
+      break;
+
+    case "subscription.cancelled":
+    case "subscription.failed":
+      await supabase
+        .from("profiles")
+        .update({
+          subscription_status: "cancelled",
+        })
+        .eq("id", supabaseUserId);
+      break;
+
+    case "subscription.trial_end":
+      await supabase
+        .from("profiles")
+        .update({
+          subscription_status: "trial_ended",
+        })
+        .eq("id", supabaseUserId);
+      break;
+  }
+}
+
+type PaymentEventData = {
+  payment_id: string;
+  payload_type: string;
+  [key: string]: unknown;
+};
+
+async function handlePaymentEvent(
+  type: string,
+  data: PaymentEventData,
+  supabase: ReturnType<typeof createServerClient>
+) {
+  const payment = await dodopayments.payments.retrieve(data.payment_id);
+  const metadata = payment.metadata || {};
+  const supabaseUserId = metadata.supabase_user_id;
+  const dodopaymentsCustomerId =
+    typeof payment.customer === "object" && payment.customer.customer_id
+      ? payment.customer.customer_id
+      : payment.customer || metadata.dodopayments_customer_id;
+
+  if (!supabaseUserId) {
+    throw new Error("Missing supabaseUserId in payment metadata");
+  }
+
+  // const now = new Date();
+  const paymentDate = new Date(payment.created_at);
+  const lastPaymentId = data.payment_id;
+
+  if (type === "payment.succeeded") {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select(
+        "trial_ends_at, last_payment_at, payment_status, dodopayments_last_payment_id"
+      )
+      .eq("id", supabaseUserId)
+      .single();
+
+    if (error) throw new Error("User not found");
+
+    const alreadyUpdated =
+      profile.payment_status === "succeeded" &&
+      profile.last_payment_at === paymentDate.toISOString() &&
+      profile.dodopayments_last_payment_id === lastPaymentId;
+
+    // const trialEnded =
+    //   profile.trial_ends_at && new Date(profile.trial_ends_at) < now;
+
+    if (!alreadyUpdated) {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          last_payment_at: paymentDate.toISOString(),
+          payment_status: "succeeded",
+          dodopayments_customer_id: dodopaymentsCustomerId,
+          dodopayments_last_payment_id: lastPaymentId,
+          // subscription_status: "active",
+          // is_trialing: true,
+          // trial_ends_at: trialEnded ? null : profile.trial_ends_at,
+          // has_ever_trialed: true,
+        })
+        .eq("id", supabaseUserId);
+
+      if (updateError) {
+        console.error("Failed to update profile after payment:", updateError);
+        throw new Error("Failed to update profile after payment");
+      }
+    }
+  }
+
+  if (type === "payment.failed") {
+    await supabase
+      .from("profiles")
+      .update({
+        // subscription_status: "cancelled",
+        payment_status: "failed",
+      })
+      .eq("id", supabaseUserId);
   }
 }

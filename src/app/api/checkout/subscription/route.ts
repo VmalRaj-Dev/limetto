@@ -2,7 +2,7 @@ import { dodopayments } from "@/lib/dodopayments";
 import { NextResponse } from "next/server";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
-import { createServerClient } from '@/utils/supabase/serverClient';
+import { createServerClient } from "@/utils/supabase/serverClient";
 
 countries.registerLocale(enLocale);
 
@@ -46,9 +46,6 @@ export const POST = async (request: Request) => {
 
     let dodopaymentsCustomerId: string | undefined;
 
-    console.log('supabaseUserId', supabaseUserId);
-    
-
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("dodopayments_customer_id")
@@ -56,14 +53,20 @@ export const POST = async (request: Request) => {
       .single();
 
     if (profileError) {
-      console.error("Payment Webhook profile fetch failed:", profileError.message);
+      console.error(
+        "Payment Webhook profile fetch failed:",
+        profileError.message
+      );
       return NextResponse.json(
         { error: "Failed to fetch profile for subscription" },
         { status: 400 }
       );
     }
     if (!profile) {
-      console.error("Payment Webhook: No profile found for user", supabaseUserId);
+      console.error(
+        "Payment Webhook: No profile found for user",
+        supabaseUserId
+      );
       return NextResponse.json(
         { error: "No profile found for user" },
         { status: 404 }
@@ -74,20 +77,17 @@ export const POST = async (request: Request) => {
 
     if (profile?.dodopayments_customer_id) {
       dodopaymentsCustomerId = profile.dodopayments_customer_id;
-      console.log("Existing dodopaymentsCustomerId:", dodopaymentsCustomerId);
     } else {
       const customerRes = await dodopayments.customers.create({
         email,
         name,
       });
       dodopaymentsCustomerId = customerRes.customer_id;
-      console.log(
-        "New dodopaymentsCustomerId created:",
-        dodopaymentsCustomerId
-      );
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ dodopayments_customer_id: dodopaymentsCustomerId })
+        .update({
+          dodopayments_customer_id: customerRes.customer_id, // <-- This is correct!
+        })
         .eq("id", supabaseUserId);
 
       if (updateError) {
@@ -103,10 +103,6 @@ export const POST = async (request: Request) => {
       }
     }
 
-    console.log(
-      "dodopaymentsCustomerId before subscription creation:",
-      dodopaymentsCustomerId
-    );
     if (!dodopaymentsCustomerId) {
       throw new Error("Failed to resolve dodopaymentsCustomerId");
     }
@@ -130,11 +126,6 @@ export const POST = async (request: Request) => {
         dodopayments_customer_id: dodopaymentsCustomerId, // <--- ADD THIS LINE
       },
     });
-
-    console.log(
-      "Subscription creation response (metadata part):",
-      subscriptionResponse.metadata
-    );
 
     return NextResponse.json(subscriptionResponse);
   } catch (error) {

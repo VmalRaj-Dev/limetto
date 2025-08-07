@@ -11,6 +11,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     | "link"
     | "premium"
     | "hero"
+    | "subscribe"
   size?: "default" | "sm" | "lg" | "icon"
 }
 
@@ -22,7 +23,7 @@ const buttonVariants = {
   ghost: "hover:bg-accent hover:text-accent-foreground",
   link: "text-primary underline-offset-4 hover:underline",
   premium: "bg-gradient-primary text-primary-foreground hover:shadow-button transform hover:scale-105 transition-all duration-300",
-
+  subscribe: "bg-gradient-lime hover:bg-lime-accent text-primary-foreground shadow-elegant hover:shadow-glow hover:scale-[1.02] transition-all duration-300 font-semibold",
   hero: "bg-gradient-primary text-primary-foreground hover:shadow-glow transform hover:scale-105 transition-all duration-300 text-lg py-6 px-8",
 }
 

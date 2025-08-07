@@ -21,7 +21,6 @@ export async function POST() {
     .eq('id', user.id)
     .single();
 
-  console.log('-----> Dodo Customer ID from DB:', profile?.dodopayments_customer_id);
   if (profileError) {
     console.error('Supabase profile fetch error:', profileError.message);
   }
@@ -68,8 +67,6 @@ export async function POST() {
       console.error('Failed to parse Dodo Payments API response as JSON:', text, err);
       data = {};
     }
-
-    console.log('Dodo Payments API response:', data);
 
     if (!dodoRes.ok) {
       return NextResponse.json(
