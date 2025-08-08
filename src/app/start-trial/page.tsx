@@ -67,15 +67,6 @@ export default function StartTrial() {
     window.location.reload();
   };
 
-  // return (
-  //   <div className="flex justify-center items-center h-screen">
-  //     <p className="text-center text-lg">
-  //       {(loading || userLoading) 
-  //         ? "Redirecting to start your free trial..." 
-  //         : "Unable to start trial. Please refresh or contact support."}
-  //     </p>
-  //   </div>
-
   if (loading || userLoading) {
     return (
       <div className="min-h-screen bg-limetto-dark flex items-center justify-center p-4">

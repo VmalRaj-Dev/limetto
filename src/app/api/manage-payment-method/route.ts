@@ -39,10 +39,12 @@ export async function POST() {
   // const returnUrl = `${origin}/dashboard`;
 
   // Use the correct test or live endpoint
-  const baseUrl =
-    process.env.NODE_ENV === 'production'
-      ? 'https://live.dodopayments.com'
-      : 'https://test.dodopayments.com';
+  // const baseUrl =
+  //   process.env.NODE_ENV === 'production'
+  //     ? 'https://live.dodopayments.com'
+  //     : 'https://test.dodopayments.com';
+
+       const baseUrl ='https://test.dodopayments.com';
 
   const customerId = profile.dodopayments_customer_id;
 
