@@ -98,6 +98,7 @@ async function handleSubscriptionEvent(
         })
         .eq("id", supabaseUserId);
       if (updateError) {
+        console.error("Failed to update profile after payment:", updateError);
         throw new Error("Failed to update profile after payment");
       }
       break;
