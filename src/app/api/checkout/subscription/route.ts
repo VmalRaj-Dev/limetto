@@ -11,6 +11,7 @@ const DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID =
 
 export const POST = async (request: Request) => {
   try {
+    // Validate environment variables
     if (!DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID) {
       throw new Error(
         "Missing DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID env var"
@@ -20,6 +21,7 @@ export const POST = async (request: Request) => {
     const body = await request.json();
     const { supabaseUserId, supabaseCategoryId, email, name, billing } = body;
 
+    // Validate request body
     if (
       !supabaseUserId ||
       !supabaseCategoryId ||
@@ -73,8 +75,7 @@ export const POST = async (request: Request) => {
       );
     }
 
-    // The "no rows found" case is already handled above, so we don't need to check profileError.code here.
-
+    // Handle customer ID logic
     if (profile?.dodopayments_customer_id) {
       dodopaymentsCustomerId = profile.dodopayments_customer_id;
     } else {
@@ -86,7 +87,7 @@ export const POST = async (request: Request) => {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
-          dodopayments_customer_id: customerRes.customer_id, // <-- This is correct!
+          dodopayments_customer_id: dodopaymentsCustomerId,
         })
         .eq("id", supabaseUserId);
 
@@ -106,34 +107,67 @@ export const POST = async (request: Request) => {
     if (!dodopaymentsCustomerId) {
       throw new Error("Failed to resolve dodopaymentsCustomerId");
     }
-    const subscriptionResponse = await dodopayments.subscriptions.create({
-      billing: {
-        ...billing,
-        country: countryCode,
-      },
-      customer: {
-        email,
-        name,
-        customer_id: dodopaymentsCustomerId,
-      },
-      payment_link: true,
-      product_id: DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID,
-      quantity: 1,
-      return_url: process.env.NEXT_PUBLIC_BASE_URL,
-      metadata: {
-        supabase_user_id: supabaseUserId,
-        supabase_category_id: supabaseCategoryId,
-        dodopayments_customer_id: dodopaymentsCustomerId, // <--- ADD THIS LINE
-      },
+
+    // Add timeout handling
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Request timeout")), 30000);
     });
 
-    return NextResponse.json(subscriptionResponse);
+    // Create subscription with improved error handling
+    const subscriptionResponse = await Promise.race([
+      dodopayments.subscriptions.create({
+        billing: {
+          ...billing,
+          country: countryCode,
+        },
+        customer: {
+          email,
+          name,
+          customer_id: dodopaymentsCustomerId,
+        },
+        payment_link: true,
+        product_id: DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID,
+        quantity: 1,
+        return_url:
+          process.env.NEXT_PUBLIC_BASE_URL ||
+          "https://your-app-name.vercel.app",
+        metadata: {
+          supabase_user_id: supabaseUserId,
+          supabase_category_id: supabaseCategoryId,
+          dodopayments_customer_id: dodopaymentsCustomerId,
+        },
+      }),
+      timeoutPromise,
+    ]) as { payment_link?: string };
+
+    if (!subscriptionResponse.payment_link) {
+      return NextResponse.json(
+        { error: "No payment link received from DodoPayments" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(subscriptionResponse, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+    });
   } catch (error) {
-    console.error(error);
-    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Subscription creation error:", error);
+
+    // More structured error response
+    const statusCode = error && typeof error === 'object' && 'status' in error ? 
+      (typeof error.status === 'number' ? error.status : 500) : 500;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
     return NextResponse.json(
-      { error: "Failed to create subscription", details: msg },
-      { status: 500 }
+      {
+        error: "Failed to create subscription",
+        details: errorMessage,
+        code: statusCode,
+      },
+      { status: statusCode }
     );
   }
 };
