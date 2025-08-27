@@ -59,7 +59,7 @@ export async function POST() {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${process.env.DODO_API_KEY_TEST}`,
+          Authorization: `Bearer ${process.env.DODO_API_KEY_LIVE}`,
           'Content-Type': 'application/json',
         },
       }
