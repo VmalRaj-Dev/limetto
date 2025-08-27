@@ -44,7 +44,12 @@ export async function POST() {
   //     ? 'https://live.dodopayments.com'
   //     : 'https://test.dodopayments.com';
 
-       const baseUrl ='https://test.dodopayments.com';
+  const baseUrl =
+    process.env.PAYMENT_MODE === 'live'
+      ? 'https://live.dodopayments.com'
+      : 'https://test.dodopayments.com';
+
+      //  const baseUrl ='https://live.dodopayments.com';
 
   const customerId = profile.dodopayments_customer_id;
 

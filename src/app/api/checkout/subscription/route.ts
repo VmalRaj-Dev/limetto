@@ -129,7 +129,7 @@ export const POST = async (request: Request) => {
         product_id: DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID,
         quantity: 1,
         return_url:
-          process.env.NEXT_PUBLIC_BASE_URL ||
+          `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard` ||
           "https://your-app-name.vercel.app",
         metadata: {
           supabase_user_id: supabaseUserId,
