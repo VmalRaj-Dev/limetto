@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,7 +50,11 @@ const signUpSchema = z.object({
 // Infer the type from the schema for type safety
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-export default function SignUp() {
+interface AuthFormProps {
+  onSignupSuccess?: Dispatch<SetStateAction<string | null>>;
+}
+
+export default function SignUp({ onSignupSuccess }: AuthFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -113,7 +117,6 @@ export default function SignUp() {
         password: data.password,
         options: {
            emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/start-trial`,
-          //  emailRedirectTo: "http://localhost:3000/start-trial",
           data: {
             name: data.name,
             chosen_category_id: data.chosen_category_id,
@@ -132,6 +135,9 @@ export default function SignUp() {
       setStatus("success");
       setMessage("Account created successfully! Welcome to Limetto.");
       reset(); // Reset form fields on success
+      if (onSignupSuccess) {
+        onSignupSuccess(data.email);
+      }
     } catch (error: unknown) {
       console.error("Supabase Error:", error);
       setStatus("error");

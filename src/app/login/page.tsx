@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,10 @@ export default function Login() {
   const supabase = createClient();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotStatus, setForgotStatus] = useState<"idle" | "success" | "error">("idle");
+  const [forgotMsg, setForgotMsg] = useState("");
+  const forgotEmailRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -81,6 +85,31 @@ export default function Login() {
         error instanceof Error
           ? error.message
           : "Invalid email or password. Please try again."
+      );
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotStatus("idle");
+    setForgotMsg("");
+    const email = forgotEmailRef.current?.value || "";
+    if (!email) {
+      setForgotStatus("error");
+      setForgotMsg("Please enter your email address.");
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw new Error(error.message);
+      setForgotStatus("success");
+      setForgotMsg("Password reset email sent! Please check your inbox.");
+    } catch (err) {
+      setForgotStatus("error");
+      setForgotMsg(
+        err instanceof Error ? err.message : "Failed to send reset email."
       );
     }
   };
@@ -161,6 +190,15 @@ export default function Login() {
                     {errors.password.message}
                   </p>
                 )}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="text-xs text-lime-primary hover:text-lime-accent font-medium underline underline-offset-2 transition-colors"
+                    onClick={() => setShowForgot((v) => !v)}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
               </div>
 
               <Button
@@ -181,6 +219,45 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            {/* Forgot Password Inline Form */}
+            {showForgot && (
+              <form
+                onSubmit={handleForgotPassword}
+                className="mt-4 p-4 rounded-lg bg-muted/50 border border-muted flex flex-col gap-3 animate-fade-in"
+              >
+                <Label htmlFor="forgot-email" className="text-sm font-medium text-foreground">
+                  Enter your email to reset password
+                </Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  ref={forgotEmailRef}
+                  className="h-11 bg-background border-border"
+                  disabled={forgotStatus === "success"}
+                  autoFocus
+                />
+                <Button
+                  type="submit"
+                  className="bg-lime-primary hover:bg-lime-accent text-white font-medium h-11"
+                  disabled={forgotStatus === "success"}
+                >
+                  {forgotStatus === "success" ? "Email Sent" : "Send Reset Link"}
+                </Button>
+                {forgotMsg && (
+                  <div
+                    className={`text-xs mt-1 ${
+                      forgotStatus === "success"
+                        ? "text-green-600"
+                        : "text-destructive"
+                    }`}
+                  >
+                    {forgotMsg}
+                  </div>
+                )}
+              </form>
+            )}
 
             {/* Status Messages */}
             {status !== "idle" && (
