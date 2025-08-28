@@ -36,13 +36,15 @@ export const POST = async (request: Request) => {
       );
     }
 
-    const countryCode = countries.getAlpha2Code(billing.country, "en");
-    if (!countryCode) {
-      return NextResponse.json(
-        { error: `Invalid country: ${billing.country}` },
-        { status: 400 }
-      );
-    }
+    // const countryCode = countries.getAlpha2Code(billing.country, "en");
+    // if (!countryCode) {
+    //   return NextResponse.json(
+    //     { error: `Invalid country: ${billing.country}` },
+    //     { status: 400 }
+    //   );
+    // }
+
+    const countryCode = billing.country
 
     const supabase = createServerClient();
 

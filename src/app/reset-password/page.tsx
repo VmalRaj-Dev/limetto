@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Lock, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -16,6 +16,8 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error" | "submitting">("idle");
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,13 +69,25 @@ export default function ResetPassword() {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="new-password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter new password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="pl-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
+                    className="pl-10 pr-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
                     disabled={status === "submitting" || status === "success"}
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword((v) => !v)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
               </div>
               <div className="space-y-2">
@@ -84,13 +98,25 @@ export default function ResetPassword() {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirm-password"
-                    type="password"
+                    type={showConfirm ? "text" : "password"}
                     placeholder="Confirm new password"
                     value={confirm}
                     onChange={e => setConfirm(e.target.value)}
-                    className="pl-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
+                    className="pl-10 pr-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
                     disabled={status === "submitting" || status === "success"}
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowConfirm((v) => !v)}
+                  >
+                    {showConfirm ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
               </div>
               <Button
