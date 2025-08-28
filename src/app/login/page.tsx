@@ -18,6 +18,8 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 // Define your Zod schema for validation
@@ -39,6 +41,7 @@ export default function Login() {
   const [forgotStatus, setForgotStatus] = useState<"idle" | "success" | "error">("idle");
   const [forgotMsg, setForgotMsg] = useState("");
   const forgotEmailRef = useRef<HTMLInputElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -178,12 +181,24 @@ export default function Login() {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     {...register("password")}
-                    className="pl-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
+                    className="pl-10 pr-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
                     disabled={isSubmitting}
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword((v) => !v)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
                 {errors.password && (
                   <p className="text-destructive text-xs mt-1">

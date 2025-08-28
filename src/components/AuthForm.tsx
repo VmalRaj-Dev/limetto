@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createClient } from "@/utils/supabase/client";
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +28,12 @@ import {
   User,
   Lock,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+
+// Register the locale for country names
+countries.registerLocale(enLocale);
 
 // Define your Zod schema for validation
 const signUpSchema = z.object({
@@ -82,6 +89,7 @@ export default function SignUp({ onSignupSuccess }: AuthFormProps) {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -102,6 +110,15 @@ export default function SignUp({ onSignupSuccess }: AuthFormProps) {
 
     fetchCategories();
   }, [supabase]);
+
+  // Get country list once
+  const countryOptions = useMemo(() => {
+    const countryObj = countries.getNames("en", { select: "official" });
+    return Object.entries(countryObj).map(([code, name]) => ({
+      code,
+      name,
+    }));
+  }, []);
 
   const onSubmit = async (data: SignUpFormValues) => {
     setStatus("idle"); // Reset status on new submission attempt
@@ -249,12 +266,24 @@ export default function SignUp({ onSignupSuccess }: AuthFormProps) {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Create a secure password"
                     {...register("password")}
-                    className="pl-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
+                    className="pl-10 pr-10 h-12 bg-background border-border focus:border-primary focus:ring-primary"
                     disabled={isSubmitting}
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword((v) => !v)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
                 {/* Password requirements info */}
                 <div className="text-xs text-muted-foreground mt-1">
@@ -423,18 +452,34 @@ export default function SignUp({ onSignupSuccess }: AuthFormProps) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="flex flex-col justify-end space-y-2">
                     <Label htmlFor="country">Country</Label>
-                    <Input id="country" {...register("country")} />
+                    <select
+                      id="country"
+                      {...register("country")}
+                      className="w-full h-12 bg-background border border-border rounded-md px-3 text-sm focus:border-primary focus:ring-primary appearance-none"
+                      disabled={isSubmitting}
+                      defaultValue=""
+                      style={{ minHeight: "3rem" }}
+                    >
+                      <option value="" disabled>
+                        Select your country
+                      </option>
+                      {countryOptions.map(({ code, name }) => (
+                        <option key={code} value={code}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
                     {errors.country && (
                       <p className="text-destructive text-xs">
                         {errors.country.message}
                       </p>
                     )}
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col justify-end space-y-2">
                     <Label htmlFor="zipcode">Zipcode</Label>
-                    <Input id="zipcode" {...register("zipcode")} />
+                    <Input id="zipcode" {...register("zipcode")} className="h-12" />
                     {errors.zipcode && (
                       <p className="text-destructive text-xs">
                         {errors.zipcode.message}
