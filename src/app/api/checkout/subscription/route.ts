@@ -129,10 +129,11 @@ export const POST = async (request: Request) => {
         },
         payment_link: true,
         product_id: DODOPAYMENTS_GENERIC_SUBSCRIPTION_PRODUCT_ID,
+        on_demand: { mandate_only: true },
         quantity: 1,
         return_url:
           `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard` ||
-          "https://your-app-name.vercel.app",
+          "https://app.limetto.com",
         metadata: {
           supabase_user_id: supabaseUserId,
           supabase_category_id: supabaseCategoryId,
