@@ -2,6 +2,7 @@ import { Webhook } from "standardwebhooks";
 import { headers } from "next/headers";
 import { dodopayments } from "@/lib/dodopayments";
 import { createServerClient } from "@/utils/supabase/serverClient";
+import { emailAutomation } from "@/lib/email-automation";
 import { z } from "zod";
 
 const webhook = new Webhook(process.env.DODO_PAYMENTS_WEBHOOK_KEY!);
@@ -16,8 +17,17 @@ const SubscriptionMetadataSchema = z.object({
 //   supabase_user_id: z.string().uuid(),
 // });
 
+type PaymentWithMetadata = {
+  amount?: number;
+  currency?: string;
+  created_at: string;
+  customer: string | { customer_id: string };
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
 export async function POST(request: Request) {
-  const headersList = await headers(); // no need for `await` here
+  const headersList = await headers();
   const rawBody = await request.text();
 
   const webhookHeaders = {
@@ -101,6 +111,31 @@ async function handleSubscriptionEvent(
         console.error("Failed to update profile after payment:", updateError);
         throw new Error("Failed to update profile after payment");
       }
+
+      // Send appropriate email based on subscription type
+      try {
+        const userData = await emailAutomation.getUserData(supabaseUserId);
+        if (userData) {
+          if (isTrialing) {
+            await emailAutomation.sendTrialActivatedEmail({
+              userId: supabaseUserId,
+              email: userData.mail_id,
+              userName: userData.name || 'there',
+              trialEndDate: nextBillingDate.toISOString(),
+            });
+          } else {
+            await emailAutomation.sendSubscriptionStartedEmail({
+              userId: supabaseUserId,
+              email: userData.mail_id,
+              userName: userData.name || 'there',
+              nextBillingDate: nextBillingDate.toISOString(),
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error("Failed to send subscription email:", emailError);
+        // Don't throw error for email failures to avoid breaking webhook
+      }
       break;
 
     case "subscription.renewed":
@@ -116,6 +151,21 @@ async function handleSubscriptionEvent(
           dodopayments_customer_id: dodopaymentsCustomerId,
         })
         .eq("id", supabaseUserId);
+
+      // Send subscription renewal email
+      try {
+        const userData = await emailAutomation.getUserData(supabaseUserId);
+        if (userData) {
+          await emailAutomation.sendSubscriptionStartedEmail({
+            userId: supabaseUserId,
+            email: userData.mail_id,
+            userName: userData.name || 'there',
+            nextBillingDate: nextBillingDate.toISOString(),
+          });
+        }
+      } catch (emailError) {
+        console.error("Failed to send renewal email:", emailError);
+      }
       break;
 
     case "subscription.on_hold":
@@ -133,6 +183,23 @@ async function handleSubscriptionEvent(
           subscription_status: "cancelled",
         })
         .eq("id", supabaseUserId);
+
+      // Send subscription cancelled email
+      try {
+        const userData = await emailAutomation.getUserData(supabaseUserId);
+        if (userData) {
+          // Calculate access end date (usually end of current billing period)
+          const accessEndDate = userData.trial_ends_at || new Date().toISOString();
+          await emailAutomation.sendSubscriptionCancelledEmail({
+            userId: supabaseUserId,
+            email: userData.mail_id,
+            userName: userData.name || 'there',
+            accessEndDate: accessEndDate,
+          });
+        }
+      } catch (emailError) {
+        console.error("Failed to send cancellation email:", emailError);
+      }
       break;
 
     case "subscription.trial_end":
@@ -157,13 +224,13 @@ async function handlePaymentEvent(
   data: PaymentEventData,
   supabase: ReturnType<typeof createServerClient>
 ) {
-  const payment = await dodopayments.payments.retrieve(data.payment_id);
+  const payment = await dodopayments.payments.retrieve(data.payment_id) as unknown as PaymentWithMetadata;
   const metadata = payment.metadata || {};
-  const supabaseUserId = metadata.supabase_user_id;
+  const supabaseUserId = metadata.supabase_user_id as string;
   const dodopaymentsCustomerId =
     typeof payment.customer === "object" && payment.customer.customer_id
       ? payment.customer.customer_id
-      : payment.customer || metadata.dodopayments_customer_id;
+      : payment.customer || (metadata.dodopayments_customer_id as string);
 
   if (!supabaseUserId) {
     throw new Error("Missing supabaseUserId in payment metadata");
@@ -210,6 +277,25 @@ async function handlePaymentEvent(
       if (updateError) {
         console.error("Failed to update profile after payment:", updateError);
         throw new Error("Failed to update profile after payment");
+      }
+
+      // Send payment success email
+      try {
+        const userData = await emailAutomation.getUserData(supabaseUserId);
+        if (userData) {
+          // Get amount from payment object (adjust property name based on your payment provider)
+          const paymentAmount = payment.amount || 2999; // Default to $29.99 if not available
+          await emailAutomation.sendPaymentSuccessEmail({
+            userId: supabaseUserId,
+            email: userData.mail_id,
+            userName: userData.name || 'there',
+            amount: paymentAmount / 100, // Convert from cents
+            currency: payment.currency || 'USD',
+            nextBillingDate: profile.trial_ends_at || new Date().toISOString(),
+          });
+        }
+      } catch (emailError) {
+        console.error("Failed to send payment success email:", emailError);
       }
     }
   }

@@ -6,7 +6,7 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = "noreply@limetto.com",
+  from = "noreply@auth.limetto.com",
 }: {
   to: string;
   subject: string;
