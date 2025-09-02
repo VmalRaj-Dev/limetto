@@ -280,23 +280,23 @@ async function handlePaymentEvent(
       }
 
       // Send payment success email
-      try {
-        const userData = await emailAutomation.getUserData(supabaseUserId);
-        if (userData) {
-          // Get amount from payment object (adjust property name based on your payment provider)
-          const paymentAmount = payment.amount || 2999; // Default to $29.99 if not available
-          await emailAutomation.sendPaymentSuccessEmail({
-            userId: supabaseUserId,
-            email: userData.mail_id,
-            userName: userData.name || 'there',
-            amount: paymentAmount / 100, // Convert from cents
-            currency: payment.currency || 'USD',
-            nextBillingDate: profile.trial_ends_at || new Date().toISOString(),
-          });
-        }
-      } catch (emailError) {
-        console.error("Failed to send payment success email:", emailError);
-      }
+      // try {
+      //   const userData = await emailAutomation.getUserData(supabaseUserId);
+      //   if (userData) {
+      //     // Get amount from payment object (adjust property name based on your payment provider)
+      //     const paymentAmount = payment.amount || 2999; // Default to $29.99 if not available
+      //     await emailAutomation.sendPaymentSuccessEmail({
+      //       userId: supabaseUserId,
+      //       email: userData.mail_id,
+      //       userName: userData.name || 'there',
+      //       amount: paymentAmount / 100, // Convert from cents
+      //       currency: payment.currency || 'USD',
+      //       nextBillingDate: profile.trial_ends_at || new Date().toISOString(),
+      //     });
+      //   }
+      // } catch (emailError) {
+      //   console.error("Failed to send payment success email:", emailError);
+      // }
     }
   }
 

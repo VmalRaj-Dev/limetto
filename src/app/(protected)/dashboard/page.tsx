@@ -23,6 +23,7 @@ import {
   Crown,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
 
 // Define a type for the joined profile data
 interface ProfileWithCategory extends Omit<Profile, "chosen_category_id"> {
@@ -272,7 +273,8 @@ export default function Account() {
           <Card className="border-lime-primary shadow-2xl overflow-hidden bg-card">
             <div className="bg-gradient-lime p-6 text-white">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-8 w-8" />
+                {/* <Sparkles className="h-8 w-8" /> */}
+                <Image src={'/logo.png'} alt="Limetto Logo" width={32} height={32} />
               </div>
               <h3 className="text-2xl font-bold text-center mb-2">Welcome to Limetto!</h3>
               <p className="text-lime-primary text-center">Let&apos;s get you set up in just a few clicks</p>
@@ -299,8 +301,9 @@ export default function Account() {
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-lime rounded-xl flex items-center justify-center shadow-lg">
-                <Sparkles className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+                {/* <Sparkles className="h-5 w-5 text-white" /> */}
+                <Image src={'/logo.png'} alt="Limetto Logo" width={32} height={32} />
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">Limetto</h1>

@@ -120,6 +120,6 @@ export async function updateSession(request: NextRequest) {
 export const config = {
   matcher: [
     // Apply to all routes except these
-    '/((?!_next/static|_next/image|favicon.ico|api/webhook|.*\\..*|auth/confirm).*)',
+    '/((?!_next/static|_next/image|favicon.svg|api/webhook|.*\\..*|auth/confirm).*)',
   ],
 }

@@ -21,6 +21,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import Image from "next/image";
 
 // Define your Zod schema for validation
 const loginSchema = z.object({
@@ -124,7 +125,8 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
             <div className="w-8 h-8 bg-gradient-lime rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+              {/* <Sparkles className="w-5 h-5 text-primary-foreground" /> */}
+              <Image src={'/logo.png'} alt="Limetto Logo" width={32} height={32} />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Limetto</h1>
           </div>
