@@ -135,7 +135,7 @@ export class EmailAutomation {
 
       const { subject, html } = renderEmailTemplate('subscriptionCancelled', {
         userName: data.userName,
-        accessEndDate: formatDate(data.accessEndDate),
+        // accessEndDate: formatDate(data.accessEndDate),
       });
 
       await sendEmail({

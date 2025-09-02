@@ -80,7 +80,8 @@ export const emailTemplates = {
   trialActivated: {
     subject: 'Your Free Trial is Now Active! ✨',
     title: 'Your Free Trial Has Started',
-    message: 'Great news! Your free trial is now active and you have full access to all Limetto features. Your trial will end on {{trialEndDate}}.',
+    // message: 'Great news! Your free trial is now active and you have full access to all Limetto features. Your trial will end on {{trialEndDate}}.',
+    message: 'Great news! Your free trial is now active and you have full access to all Limetto features.',
     buttonText: 'Explore Features',
     buttonUrl: '{{dashboardUrl}}',
     additionalInfo: 'Make the most of your trial period by exploring all our features. You can upgrade to a paid plan anytime before your trial ends.'
@@ -92,12 +93,14 @@ export const emailTemplates = {
     message: 'Congratulations! Your Limetto Pro subscription is now active. You now have unlimited access to all premium features.',
     buttonText: 'Access Dashboard',
     buttonUrl: '{{dashboardUrl}}',
-    additionalInfo: 'Your next billing date is {{nextBillingDate}}. You can manage your subscription anytime from your account settings.'
+    additionalInfo: 'You can manage your subscription anytime from your account settings.'
+    // additionalInfo: 'Your next billing date is {{nextBillingDate}}. You can manage your subscription anytime from your account settings.'
   },
   
   paymentReminder: {
     subject: 'Payment Due Tomorrow - Limetto Subscription',
     title: 'Payment Reminder',
+    // message: 'This is a friendly reminder that your Limetto subscription payment of {{amount}} will be charged tomorrow ({{chargeDate}}).',
     message: 'This is a friendly reminder that your Limetto subscription payment of {{amount}} will be charged tomorrow ({{chargeDate}}).',
     buttonText: 'Update Payment Method',
     buttonUrl: '{{billingUrl}}',
@@ -116,10 +119,11 @@ export const emailTemplates = {
   subscriptionCancelled: {
     subject: 'Subscription Cancelled - We\'ll Miss You',
     title: 'Subscription Cancelled',
-    message: 'We\'re sorry to see you go! Your Limetto subscription has been cancelled as requested. You\'ll continue to have access until {{accessEndDate}}.',
+    // message: 'We\'re sorry to see you go! Your Limetto subscription has been cancelled as requested. You\'ll continue to have access until {{accessEndDate}}.',
+    message: 'We\'re sorry to see you go! Your Limetto subscription has been cancelled as requested. You\'ll continue to have access until end of the billing cycle.',
     buttonText: 'Reactivate Subscription',
     buttonUrl: '{{reactivateUrl}}',
-    additionalInfo: 'If you change your mind, you can reactivate your subscription anytime before {{accessEndDate}}. We\'d love to have you back!'
+    additionalInfo: 'If you change your mind, you can reactivate your subscription anytime before end of the billing cycle. We\'d love to have you back!'
   }
 };
 
@@ -137,7 +141,7 @@ export function renderEmailTemplate(
     // nextBillingDate?: string;
     chargeDate?: string;
     amount?: string;
-    accessEndDate?: string;
+    // accessEndDate?: string;
   }
 ): { subject: string; html: string } {
   const template = emailTemplates[templateKey];
@@ -166,7 +170,7 @@ export function renderEmailTemplate(
     // nextBillingDate: data.nextBillingDate,
     chargeDate: data.chargeDate,
     amount: data.amount,
-    accessEndDate: data.accessEndDate
+    // accessEndDate: data.accessEndDate
   };
 
   // Render the template
