@@ -15,7 +15,6 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getUser();
-      console.log(data)
       if (data.user) {
         router.replace("/dashboard");
       } else {
