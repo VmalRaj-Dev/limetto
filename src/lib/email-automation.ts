@@ -36,7 +36,6 @@ export class EmailAutomation {
   }
 
   async sendTrialActivatedEmail(data: EmailData) {
-    console.log(data);
     try {
       if (!data.trialEndDate) {
         throw new Error('Trial end date is required for trial activated email');
@@ -44,7 +43,7 @@ export class EmailAutomation {
 
       const { subject, html } = renderEmailTemplate('trialActivated', {
         userName: data.userName,
-        trialEndDate: formatDate(data.trialEndDate),
+        // trialEndDate: formatDate(data.trialEndDate),
       });
 
       await sendEmail({
@@ -68,7 +67,7 @@ export class EmailAutomation {
 
       const { subject, html } = renderEmailTemplate('subscriptionStarted', {
         userName: data.userName,
-        nextBillingDate: formatDate(data.nextBillingDate),
+        // nextBillingDate: formatDate(data.nextBillingDate),
       });
 
       await sendEmail({
@@ -121,7 +120,7 @@ export class EmailAutomation {
       const { subject, html } = renderEmailTemplate('paymentSuccess', {
         userName: data.userName,
         amount: formatCurrency(data.amount, data.currency),
-        nextBillingDate: formatDate(data.nextBillingDate),
+        // nextBillingDate: formatDate(data.nextBillingDate),
       });
 
       await sendEmail({

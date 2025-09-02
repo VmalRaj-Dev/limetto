@@ -133,8 +133,8 @@ export function renderEmailTemplate(
     billingUrl?: string;
     invoiceUrl?: string;
     reactivateUrl?: string;
-    trialEndDate?: string;
-    nextBillingDate?: string;
+    // trialEndDate?: string;
+    // nextBillingDate?: string;
     chargeDate?: string;
     amount?: string;
     accessEndDate?: string;
@@ -162,8 +162,8 @@ export function renderEmailTemplate(
     billingUrl: data.billingUrl || 'https://app.limetto.com/billing',
     invoiceUrl: data.invoiceUrl,
     reactivateUrl: data.reactivateUrl || 'https://app.limetto.com/subscribe',
-    trialEndDate: data.trialEndDate,
-    nextBillingDate: data.nextBillingDate,
+    // trialEndDate: data.trialEndDate,
+    // nextBillingDate: data.nextBillingDate,
     chargeDate: data.chargeDate,
     amount: data.amount,
     accessEndDate: data.accessEndDate
