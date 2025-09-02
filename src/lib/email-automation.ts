@@ -28,7 +28,6 @@ export class EmailAutomation {
         html,
       });
 
-      console.log(`Welcome email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to send welcome email:', error);
       throw error;
@@ -36,7 +35,6 @@ export class EmailAutomation {
   }
 
   async sendTrialActivatedEmail(data: EmailData) {
-    console.log(data);
     try {
       if (!data.trialEndDate) {
         throw new Error('Trial end date is required for trial activated email');
@@ -44,7 +42,7 @@ export class EmailAutomation {
 
       const { subject, html } = renderEmailTemplate('trialActivated', {
         userName: data.userName,
-        trialEndDate: formatDate(data.trialEndDate),
+        // trialEndDate: formatDate(data.trialEndDate),
       });
 
       await sendEmail({
@@ -52,8 +50,6 @@ export class EmailAutomation {
         subject,
         html,
       });
-
-      console.log(`Trial activated email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to send trial activated email:', error);
       throw error;
@@ -68,7 +64,7 @@ export class EmailAutomation {
 
       const { subject, html } = renderEmailTemplate('subscriptionStarted', {
         userName: data.userName,
-        nextBillingDate: formatDate(data.nextBillingDate),
+        // nextBillingDate: formatDate(data.nextBillingDate),
       });
 
       await sendEmail({
@@ -76,8 +72,6 @@ export class EmailAutomation {
         subject,
         html,
       });
-
-      console.log(`Subscription started email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to send subscription started email:', error);
       throw error;
@@ -104,8 +98,6 @@ export class EmailAutomation {
         subject,
         html,
       });
-
-      console.log(`Payment reminder email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to send payment reminder email:', error);
       throw error;
@@ -121,7 +113,7 @@ export class EmailAutomation {
       const { subject, html } = renderEmailTemplate('paymentSuccess', {
         userName: data.userName,
         amount: formatCurrency(data.amount, data.currency),
-        nextBillingDate: formatDate(data.nextBillingDate),
+        // nextBillingDate: formatDate(data.nextBillingDate),
       });
 
       await sendEmail({
@@ -129,8 +121,6 @@ export class EmailAutomation {
         subject,
         html,
       });
-
-      console.log(`Payment success email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to send payment success email:', error);
       throw error;
@@ -138,8 +128,6 @@ export class EmailAutomation {
   }
 
   async sendSubscriptionCancelledEmail(data: EmailData) {
-    console.log(data);
-    
     try {
       if (!data.accessEndDate) {
         throw new Error('Access end date is required for subscription cancelled email');
@@ -155,8 +143,6 @@ export class EmailAutomation {
         subject,
         html,
       });
-
-      console.log(`Subscription cancelled email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to send subscription cancelled email:', error);
       throw error;
@@ -229,8 +215,6 @@ export class EmailAutomation {
           console.error(`Failed to send payment reminder to user ${user.id}:`, error);
         }
       }
-
-      console.log(`Sent payment reminders to ${users.length} users`);
     } catch (error) {
       console.error('Error in sendPaymentReminders:', error);
     }
