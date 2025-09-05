@@ -71,7 +71,7 @@ export const emailTemplates = {
   welcome: {
     subject: 'Welcome to Limetto! 🎉',
     title: 'Welcome to Limetto!',
-    message: 'Thank you for joining Limetto! We\'re excited to have you on board. Your account has been successfully created and you\'re ready to start your journey with us.',
+    message: 'Thank you for joining Limetto! We\'re excited to have you on board. Your account has been successfully created and you\'re ready to start your journey with us. You will now receive new leads in your inbox every day by 9 AM PDT.',
     buttonText: 'Get Started',
     buttonUrl: '{{dashboardUrl}}',
     additionalInfo: 'If you have any questions or need assistance getting started, don\'t hesitate to reach out to our support team.'
